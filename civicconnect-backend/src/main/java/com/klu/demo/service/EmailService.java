@@ -1,26 +1,37 @@
 package com.klu.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.internet.MimeMessage;
+import org.springframework.web.client.RestTemplate;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${resend.api.key}")
+    private String resendApiKey;
 
-    public void sendOtp(String to, String otp) throws Exception {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    public void sendOtp(String toEmail, String otp) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
 
-        helper.setTo(to);
-        helper.setSubject("Civic Connect Password Reset OTP");
-        helper.setText("Your OTP is: " + otp, false);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + resendApiKey);
 
-        mailSender.send(message);
+        Map<String, Object> body = Map.of(
+            "from", "onboarding@resend.dev",
+            "to", toEmail,
+            "subject", "Civic Connect Password Reset OTP",
+            "text", "Your OTP is: " + otp + ". Valid for 10 minutes."
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        restTemplate.postForEntity(
+            "https://api.resend.com/emails",
+            request,
+            String.class
+        );
     }
 }

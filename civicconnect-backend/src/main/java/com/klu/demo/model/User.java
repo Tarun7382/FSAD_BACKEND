@@ -13,7 +13,7 @@ public class User {
     private String username;
     private String password;
     private String role;
-    private Integer wardNo;
+    private String region;
     private String email;
     private String otp;
 
@@ -47,6 +47,6 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public Integer getWardNo() { return wardNo; }
-    public void setWardNo(Integer wardNo) { this.wardNo = wardNo; }
+    public String getregion() { return region; }
+    public void setregion(String region) { this.region = region; }
 }
