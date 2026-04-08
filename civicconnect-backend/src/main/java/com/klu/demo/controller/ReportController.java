@@ -12,7 +12,10 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reports")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {
+	    "http://localhost:5173",
+	    "https://civic-connect-raoh.onrender.com"
+	})
 public class ReportController {
 
     @Autowired
