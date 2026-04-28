@@ -78,6 +78,58 @@ public class AuthService {
 
         throw new RuntimeException("Invalid OTP. Please try again.");
     }
+    
+ // ─── Send Signup OTP ──────────────────────────────────────────
+    public String sendSignupOtp(ForgotPasswordRequest request) throws Exception {
+        System.out.println("sendSignupOtp >> email:[" + request.getEmail() + "]");
+
+        // Check if email already registered
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already registered. Please login.");
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
+
+        // Store OTP temporarily in a temp user or in-memory
+        // We reuse a temp User object with just email + otp
+        User tempUser = userRepository.findByEmail(request.getEmail())
+                .orElse(new User());
+        tempUser.setEmail(request.getEmail());
+        tempUser.setOtp(otp);
+
+        // Save temp record to reuse OTP verify logic
+        userRepository.save(tempUser);
+
+        emailService.sendOtp(request.getEmail(), otp);
+
+        System.out.println("Signup OTP sent >> email:[" + request.getEmail()
+                + "] otp:[" + otp + "]");
+
+        return "OTP sent to " + request.getEmail();
+    }
+
+    // ─── Verify Signup OTP ────────────────────────────────────────
+    public String verifySignupOtp(OTPRequest request) {
+        System.out.println("verifySignupOtp >> email:[" + request.getEmail()
+                + "] otp:[" + request.getOtp() + "]");
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException(
+                        "No OTP request found for: " + request.getEmail()));
+
+        if (user.getOtp() == null) {
+            throw new RuntimeException("OTP expired. Please request a new one.");
+        }
+
+        if (user.getOtp().trim().equals(request.getOtp().trim())) {
+            user.setOtp(null); // ✅ Clear OTP after verification
+            userRepository.save(user);
+            return "Email verified successfully";
+        }
+
+        throw new RuntimeException("Invalid OTP. Please try again.");
+    }
 
     // ─── Reset Password ───────────────────────────────────────────
     public String resetPassword(ResetPasswordRequest request) {

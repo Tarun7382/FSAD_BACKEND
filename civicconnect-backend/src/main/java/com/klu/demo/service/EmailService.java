@@ -1,37 +1,32 @@
 package com.klu.demo.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Value("${resend.api.key}")
-    private String resendApiKey;
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public void sendOtp(String toEmail, String otp) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer " + resendApiKey);
-
-        Map<String, Object> body = Map.of(
-            "from", "onboarding@resend.dev",
-            "to", toEmail,
-            "subject", "Civic Connect Password Reset OTP",
-            "text", "Your OTP is: " + otp + ". Valid for 10 minutes."
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Civic Connect - Email Verification OTP");
+        message.setText(
+            "Hello,\n\n" +
+            "Your OTP for Civic Connect is: " + otp + "\n\n" +
+            "Valid for 10 minutes. Do not share it with anyone.\n\n" +
+            "— Civic Connect Team"
         );
-
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-
-        restTemplate.postForEntity(
-            "https://api.resend.com/emails",
-            request,
-            String.class
-        );
+        mailSender.send(message);
+        System.out.println("✅ OTP email sent to: " + toEmail);
     }
 }

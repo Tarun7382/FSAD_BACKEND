@@ -93,6 +93,13 @@ public class ReportController {
         }
     }
 
+    
+    @DeleteMapping("/delete/{id}")
+    public String deleteReport(@PathVariable Long id) {
+        reportRepository.deleteById(id);
+        return "Report deleted successfully";
+    }
+    
     // ─── Submit Feedback / Star Rating (Citizen) ─────────────
     @PutMapping("/feedback/{id}")
     public ResponseEntity<?> submitFeedback(

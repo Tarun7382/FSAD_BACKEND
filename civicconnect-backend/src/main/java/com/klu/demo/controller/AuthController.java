@@ -123,6 +123,32 @@ public ResponseEntity<?> login(@RequestBody User loginUser) {
         }
     }
 
+ // ─── Send Signup OTP ──────────────────────────────────────────
+    @PostMapping("/signup/send-otp")
+    public ResponseEntity<?> sendSignupOtp(
+            @RequestBody ForgotPasswordRequest request) {
+        try {
+            String result = authService.sendSignupOtp(request);
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (Exception e) {
+            System.err.println("Signup OTP error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // ─── Verify Signup OTP ────────────────────────────────────────
+    @PostMapping("/signup/verify-otp")
+    public ResponseEntity<?> verifySignupOtp(@RequestBody OTPRequest request) {
+        try {
+            String result = authService.verifySignupOtp(request);
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (Exception e) {
+            System.err.println("Signup verify OTP error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
     // ─── Reset Password ───────────────────────────────────────────
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
