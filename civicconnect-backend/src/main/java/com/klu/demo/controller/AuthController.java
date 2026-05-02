@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.klu.demo.service.AuthService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-// ✅ FIXED — was com.klu.dto.OTPRequest (wrong package)
 import com.klu.demo.dto.OTPRequest;
 
 import java.util.HashMap;
@@ -21,10 +20,6 @@ import com.klu.demo.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {
-	    "http://localhost:5173",
-	    "https://civic-connect-raoh.onrender.com"
-	})
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -37,7 +32,6 @@ public class AuthController {
     private AuthService authService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // ─── Signup ───────────────────────────────────────────────────
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody User user) {
         user.setUsername(user.getUsername().trim());
@@ -54,46 +48,44 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Signup successful"));
     }
 
-   @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody User loginUser) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody User loginUser) {
 
-    if (loginUser.getUsername() == null ||
-        loginUser.getPassword() == null ||
-        loginUser.getRole() == null) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", "Missing username, password, or role"));
-    }
+        if (loginUser.getUsername() == null ||
+            loginUser.getPassword() == null ||
+            loginUser.getRole() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Missing username, password, or role"));
+        }
 
-    String username = loginUser.getUsername().trim();
-    String password = loginUser.getPassword().trim();
-    String role = loginUser.getRole().toLowerCase().trim();
+        String username = loginUser.getUsername().trim();
+        String password = loginUser.getPassword().trim();
+        String role = loginUser.getRole().toLowerCase().trim();
 
-    System.out.println("LOGIN >> username:[" + username + "] role:[" + role + "]");
+        System.out.println("LOGIN >> username:[" + username + "] role:[" + role + "]");
 
-    Optional<User> userOpt =
-            userRepository.findByUsernameAndRole(username, role);
+        Optional<User> userOpt =
+                userRepository.findByUsernameAndRole(username, role);
 
-    if (userOpt.isPresent()) {
-        User user = userOpt.get();
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
 
-        // ✅ BCrypt password match
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return ResponseEntity.ok(Map.of(
-                    "message", "Login successful",
-                    "username", user.getUsername(),
-                    "role", user.getRole()
-            ));
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return ResponseEntity.ok(Map.of(
+                        "message", "Login successful",
+                        "username", user.getUsername(),
+                        "role", user.getRole()
+                ));
+            }
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid password"));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Invalid password"));
+                .body(Map.of("message", "User not found or role mismatch"));
     }
 
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(Map.of("message", "User not found or role mismatch"));
-}
-
-    // ─── Forgot Password ──────────────────────────────────────────
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(
             @RequestBody ForgotPasswordRequest request) {
@@ -107,14 +99,13 @@ public ResponseEntity<?> login(@RequestBody User loginUser) {
         }
     }
 
-    // ─── Verify OTP ───────────────────────────────────────────────
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody OTPRequest request) {
         try {
             System.out.println("Verify OTP >> email:[" + request.getEmail()
                     + "] otp:[" + request.getOtp() + "]");
 
-            String result = authService.__verifyForgotOtp__(request);
+            String result = authService.verifyForgotOtp(request);
             return ResponseEntity.ok(Map.of("message", result));
         } catch (Exception e) {
             System.err.println("Verify OTP error: " + e.getMessage());
@@ -123,7 +114,6 @@ public ResponseEntity<?> login(@RequestBody User loginUser) {
         }
     }
 
- // ─── Send Signup OTP ──────────────────────────────────────────
     @PostMapping("/signup/send-otp")
     public ResponseEntity<?> sendSignupOtp(
             @RequestBody ForgotPasswordRequest request) {
@@ -137,7 +127,6 @@ public ResponseEntity<?> login(@RequestBody User loginUser) {
         }
     }
 
-    // ─── Verify Signup OTP ────────────────────────────────────────
     @PostMapping("/signup/verify-otp")
     public ResponseEntity<?> verifySignupOtp(@RequestBody OTPRequest request) {
         try {
@@ -149,7 +138,7 @@ public ResponseEntity<?> login(@RequestBody User loginUser) {
                     .body(Map.of("message", e.getMessage()));
         }
     }
-    // ─── Reset Password ───────────────────────────────────────────
+
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(
             @RequestBody ResetPasswordRequest request) {
