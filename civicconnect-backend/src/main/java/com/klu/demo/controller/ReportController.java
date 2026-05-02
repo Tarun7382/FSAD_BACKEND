@@ -12,16 +12,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reports")
-@CrossOrigin(origins = {
-	    "http://localhost:5173",
-	    "https://civic-connect-raoh.onrender.com"
-	})
 public class ReportController {
 
     @Autowired
     private ReportRepository reportRepository;
 
-    // ─── Submit Report (Citizen) ──────────────────────────────
     @PostMapping("/submit")
     public ResponseEntity<?> submitReport(@RequestBody Report report) {
         try {
@@ -30,7 +25,6 @@ public class ReportController {
                 return ResponseEntity.badRequest()
                         .body(Map.of("message", "Missing required fields"));
             }
-            // Auto-set status based on priority
             if ("High".equals(report.getPriority())) {
                 report.setStatus("Urgent");
             } else {
@@ -47,7 +41,6 @@ public class ReportController {
         }
     }
 
-    // ─── Get My Reports (Citizen) ─────────────────────────────
     @GetMapping("/my/{username}")
     public ResponseEntity<?> getMyReports(@PathVariable String username) {
         try {
@@ -59,7 +52,6 @@ public class ReportController {
         }
     }
 
-    // ─── Get All Reports (Moderator/Admin) ───────────────────
     @GetMapping("/all")
     public ResponseEntity<?> getAllReports() {
         try {
@@ -70,7 +62,6 @@ public class ReportController {
         }
     }
 
-    // ─── Update Report Status (Moderator) ────────────────────
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long id,
@@ -93,14 +84,12 @@ public class ReportController {
         }
     }
 
-    
     @DeleteMapping("/delete/{id}")
     public String deleteReport(@PathVariable Long id) {
         reportRepository.deleteById(id);
         return "Report deleted successfully";
     }
-    
-    // ─── Submit Feedback / Star Rating (Citizen) ─────────────
+
     @PutMapping("/feedback/{id}")
     public ResponseEntity<?> submitFeedback(
             @PathVariable Long id,
