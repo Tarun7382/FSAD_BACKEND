@@ -6,7 +6,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.klu.demo.dto.OTPRequest;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -105,7 +104,7 @@ public class AuthController {
             System.out.println("Verify OTP >> email:[" + request.getEmail()
                     + "] otp:[" + request.getOtp() + "]");
 
-            String result = authService.verifyForgotOtp(request);
+            String result = authService.__verifyForgotOtp__(request);
             return ResponseEntity.ok(Map.of("message", result));
         } catch (Exception e) {
             System.err.println("Verify OTP error: " + e.getMessage());
